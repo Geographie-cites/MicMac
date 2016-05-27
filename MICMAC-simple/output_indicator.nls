@@ -1,0 +1,23 @@
+
+to find-local-maxima-I
+
+  if gMaxI <= compute-pop-total-with-state "I"
+  [
+    set gMaxI compute-pop-total-with-state "I"
+    set gTimeofMaxI (ticks - min [tagged?] of nodes)
+  ]
+
+end
+
+to compute-end-indicator 
+    
+  set gduration (ticks - min [tagged?] of nodes)
+  
+  let pop (sum [S_Node + I_Node + R_Node] of Nodes) + (sum [S_Group + I_Group + R_Group] of MobileGroups)
+  
+  set gTimeToReachAllNodes (max [tagged?] of nodes - min [tagged?] of nodes)
+  set gtotal-number-people-infected ((compute-pop-total-with-state "R" + compute-pop-total-with-state "I") / pop) * 100   
+
+
+
+end

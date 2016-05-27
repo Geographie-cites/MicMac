@@ -1,0 +1,59 @@
+;********************
+; City-to-display
+;********************
+
+to select-city-to-display
+  ;no-display
+  
+  if mouse-down?
+  [
+    show (word mouse-xcor mouse-ycor)
+    set city-to-display one-of nodes with [distancexy-nowrap mouse-xcor mouse-ycor < 1.0]
+      
+    set-current-plot "SIR chosen city"  
+    clear-plot
+    set-plot-x-range 0 gPopulation-at-Calibrage-Node
+    set-plot-y-range 0 gPopulation-at-Calibrage-Node
+  ]
+  ;display  
+end
+
+;********************
+; Infected Display
+;********************
+to identify-infected-nodes
+  ask nodes 
+  [ 
+    ifelse I_node = 0
+    [
+      set color white
+      set size 2
+    ]
+    [
+      set color red
+      set size 2 + ln I_node
+      if tagged? = 0 [ set tagged? ticks]
+    ]  
+  ]
+end
+
+;********************
+; Plot
+;********************
+
+to plot-selected-city
+  set-current-plot "SIR chosen city"
+  set-current-plot-pen "S"
+  if city-to-display != nobody [
+    plot [S_Node] of city-to-display
+  ]  
+  set-current-plot-pen "I"
+  if city-to-display != nobody [
+    plot [I_Node] of city-to-display
+  ]  
+  set-current-plot-pen "R"
+  if city-to-display != nobody [
+    plot [R_Node] of city-to-display
+  ]  
+  ; clear-plot
+end

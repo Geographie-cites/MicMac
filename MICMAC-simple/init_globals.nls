@@ -1,0 +1,133 @@
+globals
+[
+  mouse-clicked
+  new-choose
+  node-list
+  last1
+  last2
+  group-tag-tick
+  gEpsilon-stop
+
+  city-to-display
+  end-of-epidemy 
+  initial-population
+  
+  average-path-length
+  
+  ;;calibrage
+  gPopulation-at-Calibrage-Node
+  gdureeDt
+  gspeed-factor
+  guniteEspace
+  gDurationEpidemy-days
+  gEpsilon
+  gnbStepCalib
+  gTotal-population
+  gpotential-population-departure
+  
+  ;; territory 
+  gTerritorySize-km
+  
+  ;; init node
+  gS-At-node
+  gI-At-node
+  gR-At-Node
+  gintegrationStep
+ 
+  ;;network 
+  gnumber-nodes
+  gradius-random-network  
+  grewiring-probability-SmallWorld
+  gnetwork-choice
+  
+  ;; epidemio
+  galpha
+  galpha-airplane
+  gbeta
+  gbeta-airplane
+  ggamma
+  gbirth
+  gdead2
+  gdead1
+  
+  ;;mobile group
+  gairplane-size
+  gairplane-speed
+  
+  ;; mobility rate
+  gmobility-rate
+  
+  ;; Outputs
+  gduration
+  gTimeToReachAllNodes
+  gMaxI ;; pic contamination
+  gTimeofMaxI
+  gtotal-number-people-infected
+  gcumulated-infection-in-flight
+  
+]
+
+
+to init-widget-global
+  ;; Stop
+  set gEpsilon-stop Epsilon-stop
+  ;; epidemio
+  set galpha alpha
+  set galpha-airplane alpha-airplane
+  set gbeta beta
+  set gbeta-airplane beta-airplane
+  set ggamma gamma
+  set gbirth birth
+  set gdead2 dead2
+  set gdead1 dead1
+  
+  ;;network
+  set gnumber-nodes number-nodes
+  set gradius-random-network radius-random-network
+  set grewiring-probability-SmallWorld rewiring-probability-SmallWorld 
+  set gnetwork-choice network-choice 
+
+  ;;mobility-rate
+  set gmobility-rate mobility-rate
+  
+  ;; calibrage
+  set gTerritorySize-km TerritorySize-km
+  set gDurationEpidemy-days DurationEpidemy-days
+  set gEpsilon Epsilon
+  
+  ;; init node
+  set gintegrationStep integrationStep
+  set gS-At-node S-At-node
+  set gI-At-node I-At-node
+  set gR-At-Node R-At-Node
+
+  ;; mobile group
+  set gairplane-size airplane-size
+  set gairplane-speed airplane-speed
+
+end
+
+to initialise-globals
+ 
+  set node-list []
+  set city-to-display nobody
+  
+  set gMaxI  0
+  set gduration 0
+  set gTimeofMaxI 0
+  
+  set gTimeToReachAllNodes 0
+  set gtotal-number-people-infected 0
+  set end-of-epidemy false
+  set gcumulated-infection-in-flight 0
+  
+  ;;calibrage
+  set gdureeDt 0
+  set gspeed-factor 0
+  set guniteEspace 0
+  set gnbStepCalib 0
+  
+  set initial-population compute-pop-total
+  
+  
+end

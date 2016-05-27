@@ -1,0 +1,25 @@
+
+to-report find-state [#roundedStock]
+   
+   let roundedPop sum #roundedStock
+   let random-value (random roundedPop) + 1
+   
+   let state 0
+   let step-i 0    
+
+   if roundedPop > 0 [
+     foreach #roundedStock
+     [    
+       if state = 0 [
+         set random-value random-value - item step-i #roundedStock
+         ifelse random-value <= 0 [
+           set state step-i + 1  
+         ][
+           set step-i step-i + 1
+         ]
+       ]
+     ]
+   ]
+
+    report state
+end

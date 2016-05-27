@@ -1,0 +1,63 @@
+
+
+;NB State-MobileAgent => 1 Susceptible, 2 Infected, 3 Retired
+
+to-report compute-pop-total-with-state [state]
+  ifelse state = "S" 
+  [
+    report sum [ S_Node ] of Nodes +  sum [ S_Group ] of MobileGroups
+  ]
+  [
+    ifelse state = "I"
+    [
+      report sum [ I_Node ] of Nodes + sum [ I_Group ] of MobileGroups
+    ]
+    [
+      if state = "R"
+      [
+      report sum [ R_Node ] of Nodes + sum [ R_Group ] of MobileGroups
+      ]
+    ]
+  ]
+end
+
+;;Renvoie la partie entiere arrondi a l'inférieur
+
+to-report compute-pop-node-floor [node]
+   let mysum 0
+   ask node 
+   [
+     if int(S_Node) >= 1 [set mysum mysum + int(S_Node)]
+     if int(I_Node) >= 1 [set mysum mysum + int(I_Node)]
+     if int(R_Node) >= 1 [set mysum mysum + int(R_Node)]
+   ]
+   report mysum
+end
+
+to-report recompute-rounded-population [pop]  
+  report (list int(item 0 pop) int(item 1 pop) int(item 2 pop))
+end 
+
+to-report isNaN [x]
+  report not ( x > 0.0 or x < 0.0 or x = 0.0 )
+end
+
+
+to-report compute-pop-node [node] 
+   report ([S_Node + I_Node + R_Node] of node) 
+end 
+
+;;Renvoie la pop totale pour un group 
+
+to-report compute-pop-group [mobilegroup]  
+   report ([S_Group + I_Group + R_Group] of mobilegroup )
+end
+
+to-report total-mobile-pop
+  report (sum [compute-pop-group self ] of MobileGroups)
+end
+
+
+to-report compute-pop-total
+    report ( sum [ compute-pop-node self] of Nodes +  total-mobile-pop )
+end

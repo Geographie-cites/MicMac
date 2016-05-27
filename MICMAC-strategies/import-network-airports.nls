@@ -1,0 +1,99 @@
+
+to setup-network-airport
+
+  set-default-shape turtles "circle"
+  import-attributes
+  import-links
+  destroy-alone-nodes
+end
+
+to destroy-alone-nodes
+  ask nodes [
+    if adjacent = [] [die]
+    ]
+end
+
+;; This procedure reads in a files that contains node-specific attributes
+;; including an unique identification number
+to import-attributes
+  ;; This opens the file, so we can use it.
+  file-open "Airports-Nodes.net"
+  ;; Read in all the data in the file
+  ;; data on the line is in this order:
+  ;; node-id attribute1 attribute
+  show "READ ../../reseau/Airports-Edges.net"
+  while [not file-at-end?]
+  [
+    ; show file-read-line 
+    ;; this reads a single line into a three-item list
+    let items read-from-string (word "[" file-read-line "]")
+    create-nodes 1
+    [
+    
+      set color white
+      set adjacent []
+      set shape "circle 2"
+      set node-list fput self node-list
+      
+      ;; Changement de repère pour passer [0,1]  à [-max-pxcor,max-pxcor]
+      init-param-node (((item 2 items) - 0.5) * 2 * max-pxcor) (((item 3 items) - 0.5) * 2 * max-pycor)
+      set id item 0 items
+    ]
+  ]
+  file-close 
+end
+
+;; This procedure reads in a file that contains all the links
+;; The file is simply 3 columns separated by spaces.  In this
+;; example, the links are directed.  The first column contains
+;; the node-id of the node originating the link.  The second
+;; column the node-id of the node on the other end of the link.
+;; The third column is the strength of the link.
+
+to import-links
+  ;; This opens the file, so we can use it.
+  file-open "Airports-Edges.net"
+  ;; Read in all the data in the file
+  show "READ ../../reseau/Airports-Nodes.net"
+  while [not file-at-end?]
+  [
+   ;; show file-read-line 
+    ;; this reads a single line into a three-item list
+    let items read-from-string (word "[" file-read-line "]")
+   ;; show (word item 0 items " " item 1 items )
+   let node1 one-of nodes with [id = item 0 items]
+   let node2 one-of nodes with [id = item 1 items]
+   
+   ask node1 [
+   
+   ;;A quoi ca sert exactement ?
+   set heading towards-nowrap node2
+   set size distance-nowrap node2
+   jump (distance-nowrap node2) / 2
+   
+    create-edge-with node2 [
+        set a myself
+        set b node2
+        set color white]
+   ]
+  
+   ask node1 [set adjacent fput node2 [adjacent] of node1]
+   ask node2 [set adjacent fput node1 [adjacent] of node2]
+  
+   ;;create-my-edge (one-of nodes with [id = item 0 items]) (one-of nodes with [id = item 1 items]) black
+    
+    ;ask get-node (item 0 items)
+    ;[
+    ;  create-link-to get-node (item 1 items)
+    ;    [ set label item 2 items ]
+    ;]
+  ;  show (word " " (item 0 items) " - " (item 1 items) " - " (item 2 items))
+  ]
+  file-close
+end
+
+
+;; Helper procedure for looking up a node by node-id.
+;to-report get-node [id]
+;  report one-of turtles with [node-id = id]
+;end

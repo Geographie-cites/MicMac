@@ -1,0 +1,113 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Path length computations ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Implements the Floyd Warshall algorithm for All Pairs Shortest Paths
+;; It is a dynamic programming algorithm which builds bigger solutions
+;; from the solutions of smaller subproblems using memoization that
+;; is storing the results.
+;; It keeps finding incrementally if there is shorter path through
+;; the kth node.
+;; Since it iterates over all turtles through k,
+;; so at the end we get the shortest possible path for each i and j.
+
+to find-path-lengths
+  let infinity 99999
+  ;; reset the distance list
+  ask nodes
+  [
+    set distance-from-other-nodes []
+ ;   set distance-from-other-nodes lput infinity distance-from-other-nodes
+  ]
+
+  let i 1
+  let j 1
+  let k 1
+  let node1 one-of nodes
+  let node2 one-of nodes
+  let node-count count nodes
+  ;; initialize the distance lists
+  while [i <= node-count]
+  [
+    set j 1
+    while [j <= node-count]
+    [
+      ;show i 
+      ;show node-count
+      ;show node i
+      set node1 node i
+      set node2 node j
+      ;; zero from a node to itself
+      ifelse i = j
+      [
+        ask node1 [
+          set distance-from-other-nodes lput 0 distance-from-other-nodes
+        ]
+      ]
+      [
+        ;; 1 from a node to it's neighbor
+        ifelse [ link-neighbor? node1 ] of node2
+        [
+          ask node1 [
+            set distance-from-other-nodes lput 1 distance-from-other-nodes
+          ]
+        ]
+        ;; infinite to everyone else
+        [
+          ask node1 [
+            set distance-from-other-nodes lput infinity distance-from-other-nodes
+          ]
+        ]
+      ]
+      set j j + 1
+    ]
+    set i i + 1
+  ]
+  set i 1
+  set j 0
+  let dummy 0
+  show "hello"
+  while [k <= node-count]
+  [
+    show k 
+    set i 1
+    while [i <= node-count]
+    [
+      set j 0
+      while [j < node-count]
+      [
+        ;; alternate path length through kth node
+        set dummy ( (item (k - 1) [distance-from-other-nodes] of node i) +
+                    (item j [distance-from-other-nodes] of node k))
+        ;; is the alternate path shorter?
+        if dummy < (item j [distance-from-other-nodes] of node i)
+        [
+          ask turtle i [
+            set distance-from-other-nodes replace-item j distance-from-other-nodes dummy
+          ]
+        ]
+        set j j + 1
+      ]
+      set i i + 1
+    ]
+    set k k + 1
+  ]
+
+end
+
+
+to do-calculations
+  let infinity 99999
+  
+  ;; find the path lengths in the network
+  find-path-lengths
+
+  let num-connected-pairs sum [length remove infinity (remove 0 distance-from-other-nodes)] of turtles
+
+  ;; In a connected network on N nodes, we should have N(N-1) measurements of distances between pairs,
+  ;; and none of those distances should be infinity.
+  ;; If there were any "infinity" length paths between nodes, then the network is disconnected.
+  ;; In that case, calculating the average-path-length doesn't really make sense.
+
+  set average-path-length (sum [sum distance-from-other-nodes] of turtles) / (num-connected-pairs)
+end

@@ -1,0 +1,191 @@
+globals
+[
+  mouse-clicked
+  new-choose
+  node-list
+  last1
+  last2
+  group-tag-tick
+  gEpsilon-stop
+
+  city-to-display
+  end-of-epidemy 
+  initial-population
+  
+  average-path-length
+  
+  ;;calibrage
+  gPopulation-at-Calibrage-Node
+  gdureeDt
+  gspeed-factor
+  guniteEspace
+  gDurationEpidemy-days
+  gEpsilon
+  gnbStepCalib
+  gTotal-population
+  gTotal-population-to-fly
+  gpotential-population-departure
+   
+  ;; territory 
+  gTerritorySize-km
+  
+  ;; init node
+  gS-At-node
+  gI-At-node
+  gR-At-Node
+  gintegrationStep
+  
+  ;;strategy parameter
+  gstrategy1
+  gstrategy2-avoidance
+  gstrategy3-riskCulture
+  gstrategy4
+  gstrategy4-global
+  gstrategy-redistribution
+  gpcr
+  greduc-contagion
+  gtheta1
+  gtheta2
+ 
+  ;;network 
+  gnumber-nodes
+  gradius-random-network  
+  grewiring-probability-SmallWorld
+  gnetwork-choice
+  
+  ;; epidemio
+  galpha
+  galpha-airplane
+  gbeta
+  gbeta-airplane
+  ggamma
+  gbirth
+  gdead2
+  gdead1
+  
+  ;;Mobility
+  gsum-pop-flight-real
+  gsum-pop-flight-expected
+  
+  ;;mobile group
+  gairplane-size
+  gairplane-speed
+  
+  ;; mobility rate
+  ginstantaneous-effective-mobility-rate
+  gmobility-rate
+  gend-effective-mobility-rate
+  
+  ;; Outputs
+  gout-traffic-reduction-instantaneous
+  gout-cumulated-traffic-reduction
+  gsum-passenger-canceled
+  gduration
+  gTimeToReachAllNodes
+  gMaxI ;; pic contamination
+  gTimeofMaxI
+  gtotal-number-people-infected
+  gtaux-reduc-max
+  gcumulated-infection-in-flight
+  gcumulated-pop-flight-real
+  gcumulated-pop-flight-expected
+  
+  
+]
+
+
+to init-widget-global
+  ;; Stop
+  set gEpsilon-stop Epsilon-stop
+  ;; epidemio
+  set galpha alpha
+  set galpha-airplane alpha-airplane
+  set gbeta beta
+  set gbeta-airplane beta-airplane
+  set ggamma gamma
+  set gbirth birth
+  set gdead2 dead2
+  set gdead1 dead1
+  
+  ;;network
+  set gnumber-nodes number-nodes
+  set gradius-random-network radius-random-network
+  set grewiring-probability-SmallWorld rewiring-probability-SmallWorld 
+  set gnetwork-choice network-choice 
+
+  ;;strategy parameter
+  set gstrategy1 S1_Quarantine
+  set gstrategy2-avoidance S2_Avoidance
+  set gstrategy3-riskCulture S3_RiskCulture
+  set gstrategy4 S4_Protection
+  set greduc-contagion reduc-contagion
+  set gstrategy4-global S4_Global
+  set gpcr pcr
+  set gtheta1 theta1
+  set gtheta2 theta2
+  set gstrategy-redistribution strategy-redistribution
+  
+  ;;mobility-rate
+  set gmobility-rate mobility-rate
+  
+  ;; calibrage
+  set gTerritorySize-km TerritorySize-km
+  set gDurationEpidemy-days DurationEpidemy-days
+  set gEpsilon Epsilon
+  
+  ;; init node
+  set gintegrationStep integrationStep
+  set gS-At-node S-At-node
+  set gI-At-node I-At-node
+  set gR-At-Node R-At-Node
+
+  ;; mobile group
+  set gairplane-size airplane-size
+  set gairplane-speed airplane-speed
+
+end
+
+to initialise-globals
+ 
+  set node-list []
+  set city-to-display nobody
+  
+  set gMaxI  0
+  set gduration 0
+  
+  set gTimeofMaxI 0
+  
+  set gTimeToReachAllNodes 0
+  set gtotal-number-people-infected 0
+  set end-of-epidemy false
+  
+  set gsum-pop-flight-real 0
+  set gsum-pop-flight-expected 0
+  set gsum-passenger-canceled 0
+  
+  set gcumulated-pop-flight-real 0
+  set gcumulated-pop-flight-expected 0
+  set gtaux-reduc-max 0
+  set gcumulated-infection-in-flight 0
+
+  set gout-traffic-reduction-instantaneous 0
+  
+  ;;calibrage
+  set gdureeDt 0
+  set gspeed-factor 0
+  set guniteEspace 0
+  set gnbStepCalib 0
+  
+  set ginstantaneous-effective-mobility-rate 0
+  
+  set initial-population compute-pop-total
+  
+  
+  if gstrategy4 = true [
+    set gbeta-airplane gbeta-airplane * greduc-contagion
+   
+    if gstrategy4-global = true [
+      set gbeta gbeta * greduc-contagion
+    ]
+  ]
+end

@@ -1,0 +1,95 @@
+to setup
+  
+  clear-all
+  reset-ticks 
+  set mouse-clicked false
+  set new-choose false
+  
+  init-widget-global
+  initialise-globals
+ 
+  
+  if gnetwork-choice = "chain"
+  [
+    setup-chain gnumber-nodes
+  ]
+  
+  if gnetwork-choice = "random"
+  [
+    setup-simple-random gnumber-nodes
+  ]
+  if gnetwork-choice = "complete"
+  [
+    setup-completeGraph gnumber-nodes
+  ]
+  
+  if gnetwork-choice = "regular"
+  [
+    setup-regularGraph gnumber-nodes Regular_graph-Order
+  ]
+  
+  
+  if gnetwork-choice = "smallworld"
+  [
+    setup-smallworld gnumber-nodes
+  ]
+  
+  if gnetwork-choice = "scale-free"
+  [
+    setup-scalefree gnumber-nodes
+  ]
+  
+  
+  if gnetwork-choice = "US Air"
+  [
+    setup-network-airport
+  ]
+  
+  if gnetwork-choice = "empty"
+  [
+    
+  ]
+  
+  ;; to compute network parameters
+  ;; do-calculations
+  
+  
+  identify-infected-nodes 
+  clear-all-plots
+  reset-ticks
+end
+
+To setup-agents
+  ifelse Infect_One_Node?
+[infect-one-node]
+[setup-again-mobileagents]
+end
+
+
+to setup-again-mobileagents
+  
+  ask mobilegroups [die]
+  
+  ask nodes 
+  [
+    init-param-node xcor ycor
+    set color white
+    set size 2
+    set tagged? 0
+  ] 
+  
+  init-widget-global
+  initialise-globals
+  
+  let result-calibrage do-calibrage gmobility-rate (S-At-Node - 1) 1 R-At-Node gnumber-nodes gbeta gintegrationStep gTerritorySize-km gdurationEpidemy-days gEpsilon
+  
+  set gspeed-factor item 0 result-calibrage
+  set gnbStepCalib item 1 result-calibrage
+  set gpotential-population-departure item 2 result-calibrage 
+
+
+  create-testNode
+  clear-all-plots
+  reset-ticks
+  
+end

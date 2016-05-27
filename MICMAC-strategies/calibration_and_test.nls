@@ -1,0 +1,143 @@
+;********************
+; Test-node
+;********************
+
+to create-testNode 
+    create-nodeTests 1
+    [
+      set color white
+      set shape "square 2"
+      set S_Node sum [ S_Node ] of Nodes
+      set I_Node sum [ I_Node ] of Nodes
+      set R_Node sum [ R_Node ] of Nodes
+    ]
+end
+
+to infect-testNode
+  ask nodeTests 
+  [
+    set I_Node I_Node + 1
+    set S_Node S_Node - 1
+  ]    
+end
+
+to compute-SIR-testNode 
+  ask nodeTests 
+  [
+    let sir []
+    
+    ifelse gstrategy4-global = true  and greduc-contagion > 0 
+    [
+      set sir rungeKuta:compute-SIR S_Node I_Node R_Node galpha (gbeta / (greduc-contagion * (S_Node + I_Node + R_Node))) gintegrationStep     
+    ]
+    [
+      set sir rungeKuta:compute-SIR S_Node I_Node R_Node galpha (gbeta / (S_Node + I_Node + R_Node))  gintegrationStep
+    ]
+    
+    set S_Node (item 0 sir)
+    set I_Node (item 1 sir)
+    set R_Node (item 2 sir)
+ ]
+end
+
+;*******************
+; Calibrage
+;*******************
+
+
+to-report do-calibrage [#mobility-rate #S-At-Node #I-At-Node #R-At-Node #number-nodes #beta #h #TerritorySize-km #durationEpidemy-days #Epsilon]
+  
+  let uniteEspace 0
+  let Population-at-Calibrage-Node 0
+  let speed-factor 0
+  let total-Population 0
+  let total-population-to-fly 0
+  let dureeDt 0
+  let nbStepCalib 0
+  let potential-population-departure 0
+  
+  if Pop-Calibrage = "Pop-totale"
+  [
+    set Population-at-Calibrage-Node ( #S-At-Node + #I-At-Node + #R-At-Node ) * #number-nodes
+  ]
+  if Pop-Calibrage = "Pop-one-node"
+  [
+    set Population-at-Calibrage-Node #S-At-Node + #I-At-Node + #R-At-Node
+  ]
+  
+  let whoId 0
+  
+  create-Nodes 1 
+  [
+    if Pop-Calibrage = "Pop-totale"
+    [
+      set S_Node #S-At-Node * #number-nodes
+      set I_Node #I-At-Node * #number-nodes
+      set R_node #R-At-Node * #number-nodes
+      set whoId who
+    ]
+    if Pop-Calibrage = "Pop-one-node"
+    [
+      set S_Node #S-At-Node 
+      set I_Node #I-At-Node 
+      set R_node #R-At-Node 
+      set whoId who      
+    ]
+  ]
+  
+  
+  ask nodes with [who = whoId] 
+  [
+    while [ I_Node >= #Epsilon ]
+    [
+      let sir rungeKuta:compute-SIR S_Node I_Node R_Node galpha (#beta / (S_Node + I_Node + R_Node)) #h
+      set S_Node (item 0 sir)
+      set I_Node (item 1 sir)
+      set R_Node (item 2 sir)
+      set nbStepCalib nbStepCalib + 1
+     
+    ]
+  ]
+  
+  set dureeDt #durationEpidemy-days * 24 / nbStepCalib
+  
+  
+  ifelse #TerritorySize-km = 0 
+  [
+    set uniteEspace 1
+  ] 
+  [
+    set uniteEspace #TerritorySize-km / (max-pxcor * 2) 
+  ]
+  
+  set speed-factor (dureeDt / uniteEspace)
+    
+  ask nodes with [who = whoId] 
+  [
+    die
+  ]
+  
+   show word "number node " #number-nodes
+   show word "TOT " (#S-At-Node + #I-At-Node + #R-At-Node )
+   
+  set total-Population ( #number-nodes * (#S-At-Node + #I-At-Node + #R-At-Node ))
+  
+  set total-population-to-fly total-Population * #mobility-rate * #durationEpidemy-days
+  set potential-population-departure round (total-population-to-fly / nbStepCalib)
+
+  ;; PRINT CALIBRAGE
+
+  show word "population at node : " Population-at-Calibrage-Node
+  show word "dureeDt : " dureeDt
+  show word "speed-factor : " speed-factor
+  show word "step calib : " nbStepCalib
+  show word "total population : " Total-population
+  show word "population to fly : " Total-population-to-fly
+  show word "instantaneous total population to fly : " potential-population-departure 
+  
+  report (list speed-factor nbStepCalib potential-population-departure)
+
+end
+
+
+

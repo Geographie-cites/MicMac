@@ -1,0 +1,279 @@
+to main-loop
+  
+  ;; --------------------
+  ;; ENDING CONDITIONS 
+  ;; --------------------
+
+  if compute-pop-total-with-state "I" > 0
+  and gTimeofMaxI < (ticks - 1) 
+;  and gtime-I-Value-max > 0 
+;  and (compute-pop-total-with-state "I" / compute-pop-total  < gEpsilon-stop) 
+  and (compute-pop-total-with-state "I" < gEpsilon-stop) 
+  [
+    compute-end-indicator
+  ]    
+  
+  if gduration > 0
+  [
+    stop
+  ]
+
+  ;; --------------------
+  ;; UPDATE SIR
+  ;; --------------------
+    
+  ask nodes [
+    if (S_Node + I_Node + R_Node) > 0 [
+     let sir rungeKuta:compute-SIR S_Node I_Node R_Node galpha (gbeta / (S_Node + I_Node + R_Node)) gintegrationStep
+     set S_Node item 0 sir
+     set I_Node item 1 sir
+     set R_Node item 2 sir
+    ]
+    
+    if S_Node < 0 or I_Node < 0 or  R_Node < 0
+    [
+      show word self "ERROR RUNGE KUTTA"
+      ]
+  ]
+  
+  ;; Mobile group > 0 ?
+  ask MobileGroups [
+    if (S_Group + I_Group + R_Group) > 0 [
+    let sir rungeKuta:compute-SIR S_Group I_Group R_Group galpha-airplane (gbeta-airplane / (S_Group + I_Group + R_Group)) gintegrationStep
+    set S_Group item 0 sir
+    set I_Group item 1 sir
+    set R_Group item 2 sir
+    ]
+  ]
+  
+  compute-SIR-testNode
+
+  ;; --------------------
+  ;; COMPUTE DEPARTURE
+  ;; --------------------
+
+  
+  let has-one-plane-left-airport? compute-departure gpotential-population-departure gairplane-size gairplane-speed gspeed-factor gnumber-nodes
+  
+  ;; ------------------------------------------------------------------
+  ;; MOVE 
+  ;; ------------------------------------------------------------------
+  
+  let infected-list []
+  ask MobileGroups [
+    let result move-a-group self
+    ;; state?
+    if item 0 result = false [
+     ;; infected?
+     if item 1 result > 0 [
+       set infected-list lput item 1 result infected-list
+       ]
+     die
+    ]
+  ]
+  
+  set gcumulated-infection-in-flight gcumulated-infection-in-flight + sum infected-list 
+
+ 
+  ;; --------------------
+  ;; DRAWING
+  ;; --------------------
+
+  identify-infected-nodes
+  plot-selected-city
+  
+  
+  find-local-maxima-I
+  
+  tick
+
+end 
+
+to create-plane [#starting-node #end-node #S_plane #I_plane #R_plane #speed-factor #airplane-speed #airplane-size]
+  
+   hatch-MobileGroups 1 
+  [
+    set hidden? false
+    set S_group #S_plane
+    set I_group #I_plane
+    set R_group #R_plane
+    set S_Group-init #S_plane
+    set next-node #end-node
+    setxy  [Xcor] of #starting-node [Ycor] of #starting-node
+    
+    set speed #airplane-speed * #speed-factor 
+    set shape "airplane"
+    
+    set heading towards next-node
+    set size ln (#airplane-size + 1)
+    
+    
+    if #S_plane = 0 and #I_plane = 0 and #R_plane = 0 
+    [
+      print word who " PLANE = 0 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" 
+    ]
+    
+    ifelse I_Group > 0 [set color red] [set color white]
+  ]
+  
+end
+
+to-report compute-departure [#potential-population-departure #airplane-size #airplane-speed #speed-factor #number-nodes]
+  
+  let sum-pop-flight-real 0
+  let sum-pop-flight-expected 0
+  let has-one-plane-left-airport? false
+  let potential-population-departure-by-node #potential-population-departure / #number-nodes 
+  let sum-passenger-canceled 0
+  
+  ask nodes
+  [
+    set stock-to-flight stock-to-flight + potential-population-departure-by-node ; consistency is checked later during airport selection
+  ]
+  
+  ;; Que se passe t il lorsque la population potentiellement prete a partir dépasse la véritable population ?
+  ;; 1 - pas d'avion qui part car pas de selection au niveau du ask (actuelle solution)
+  ;; 2 - on rentre dans le ask, mais c'est compatbilisé comme perte
+  
+  ask nodes with [stock-to-flight >= #airplane-size and compute-pop-node-floor self >= #airplane-size] 
+  [
+    set has-one-plane-left-airport? true
+    let stock-to-flight-rounded  int(stock-to-flight)
+    set stock-to-flight stock-to-flight - stock-to-flight-rounded ; we consider we empty the stocks !    
+    set sum-pop-flight-expected sum-pop-flight-expected + stock-to-flight-rounded
+
+       ;; on prend le min entre stock-to-flight-rounded et somme SIR, car pop to fly peut être supérieur à la taille de pop ce qui pose ensuite probleme
+       while [stock-to-flight-rounded >= #airplane-size and compute-pop-node-floor self >= #airplane-size ]
+      [
+        let end-node one-of (([link-neighbors] of self))
+          
+          let potential-passengers generate-passengers (list S_Node I_Node R_Node) gairplane-size
+          let plane-S-passengers item 0 potential-passengers 
+          let plane-I-passengers item 1 potential-passengers 
+          let plane-R-passengers item 2 potential-passengers
+          
+          ;; TEST SIR STOCK REMOVAL COMPARED TO PASSENGER DEPARTURE
+          if S_Node - plane-S-passengers < 0 or I_Node - plane-I-passengers < 0 or R_Node - plane-R-passengers < 0 [ 
+            show word self "ERROR passenger < 0"
+          ]
+          
+          ;; UPDATE REAL POP STOCK
+          set S_Node S_Node - plane-S-passengers
+          set I_Node I_Node - plane-I-passengers
+          set R_Node R_Node - plane-R-passengers
+          
+          let pop-which-leave-airport plane-S-passengers  + plane-I-passengers + plane-R-passengers
+          
+          ;; CREATE PLANE
+          create-plane self end-node plane-S-passengers plane-I-passengers plane-R-passengers #airplane-speed #speed-factor #airplane-size
+        
+      ]
+
+    
+  ]
+  
+
+  report has-one-plane-left-airport?
+  
+end
+
+to-report generate-passengers [pop sample_number]
+  
+  let rounded_pop recompute-rounded-population pop
+  let S_pop item 0 rounded_pop 
+  let I_pop item 1 rounded_pop 
+  let R_pop item 2 rounded_pop 
+  
+  let state 0
+  let Si 0
+  let Ii 0
+  let Ri 0
+  
+      if ((sum rounded_pop) >= int(sample_number))
+      [ 
+        ;; One returned state by find-state
+        repeat sample_number 
+        [ 
+          ;;compute/recompute population at each turn
+          set state find-state recompute-rounded-population (list S_pop I_pop R_pop)
+          
+          if state = 1 [
+            set Si Si + 1
+            set S_pop S_pop - 1
+          ]
+          
+          if state = 2 [
+            set Ii Ii + 1
+            set I_pop I_pop - 1
+          ]
+          
+          if state = 3 [
+            set Ri Ri + 1
+            set R_pop R_pop - 1
+          ]
+        ]
+      ]
+ 
+ if Si  = 0 and Ii = 0 and Ri = 0  [ 
+         show "ERROR STATE EQUAL TO 0"
+         print sum rounded_pop
+   ]
+ 
+ report (list Si Ii Ri)
+end
+
+to infect-node 
+
+  set i_node i_node + 1
+  set s_node s_node - 1
+  set color red
+  set size 2 + ln i_node
+  set tagged? ticks
+
+  if city-to-display = nobody [set city-to-display self]
+end
+
+to infect-one-node
+  setup-again-mobileagents
+
+ask nodes [set i_node 0]
+  ask one-of nodes with [S_Node > 1 ]
+  [
+    infect-node
+    
+  ]
+  
+  ask nodes [identify-infected-nodes]
+  infect-testNode
+end
+
+to-report move-a-group [group]
+  
+  let state? true
+  let infected? 0
+  
+  ask group 
+  [
+    ifelse distance-nowrap next-Node >= speed
+    [
+      fd speed
+    ]
+    [
+      setxy  [Xcor] of next-Node [Ycor] of next-Node
+      
+      ;; UPDATE NEXT NODE
+        ask [next-Node] of self
+        [
+          set S_Node S_Node + [S_Group] of myself
+          set R_Node R_Node + [R_Group] of myself
+          set I_Node I_Node + [I_Group] of myself
+        ]
+        
+         set infected? ([S_Group-init - S_Group] of self)
+         set state? false
+    ]
+  ]
+  
+  report list state? infected?
+end
+

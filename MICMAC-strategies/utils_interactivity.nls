@@ -1,0 +1,131 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Button: select node to infect
+to select-city-to-infect
+  
+  if mouse-down?
+  [
+    show (word mouse-xcor mouse-ycor)
+    let city-to-infect one-of nodes with [distancexy-nowrap mouse-xcor mouse-ycor < 1.0]
+    
+    ask city-to-infect
+    [
+      if (S_Node > 1) 
+      [
+        infect-node
+      ]  
+    ]  
+    
+  ]
+  display 
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Button: select node 
+to select-node
+  no-display
+  if not mouse-clicked and mouse-down?
+  [
+    set mouse-clicked true
+    set new-choose true
+  ]
+  if mouse-clicked and not mouse-down?
+  [
+    set mouse-clicked false
+    set new-choose false
+  ]
+
+  if mouse-clicked
+  [
+    if new-choose
+    [
+      set last2 last1
+      set last1 one-of nodes with [distancexy-nowrap mouse-xcor mouse-ycor < 1.5]
+      if member? last2 node-list [ask last2  [set color green]]
+      if member? last1 node-list [ask last1 [set color  green]]
+      set new-choose false
+    ]
+    if member? last1 node-list
+    [
+      move last1 mouse-xcor mouse-ycor
+    ]
+  ]
+  ask nodes [set color white]
+  display
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Button: create node 
+to make-node
+  
+  if mouse-down? [ 
+    ;; first make sure there's a turtle (if the user just pressed
+    ;; the mouse button, there won't be yet)
+    ask patch mouse-xcor mouse-ycor [ 
+      if not any? nodes-here [
+        sprout-nodes 1 [
+          set color white
+          set adjacent []
+          set size 2
+          set shape "circle 2"
+          set node-list fput self node-list
+          init-param-node  mouse-xcor  mouse-ycor
+        ]
+      ]
+    ]
+  ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Button: remove node 
+to remove-selected-node
+  if mouse-down?
+    [ ask nodes with [distancexy mouse-xcor mouse-ycor < 1]
+      [ 
+        die
+      ]
+    ]
+  
+end
+
+
+;*****************************
+; CONSTRUCT INTERACTIVE NETWORK
+;*****************************
+
+to make-edge[node1 node2 color-value]
+  if not (member? node1 node-list and member? node2 node-list)
+  [
+    show "duh! select 2 nodes..."
+    stop
+  ]
+  if member? node1 [adjacent] of node2
+  [
+    show "already an edge between them"
+    stop
+  ]
+  
+  create-my-edge node1 node2 color-value
+end
+
+
+to remove-selected-edge
+  if mouse-down?
+    [ 
+      ask links 
+      [
+        let mean-xcor mean [xcor] of both-ends
+        let mean-ycor mean [ycor] of both-ends
+        if (sqrt ((mean-xcor - mouse-xcor) ^ 2 + (mean-ycor - mouse-ycor) ^ 2)) < 1
+        [
+          die
+        ]
+      ]
+    ]
+end
+
+to move [node x y]
+  ask node
+  [
+    setxy x y
+  ]
+end

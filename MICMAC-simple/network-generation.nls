@@ -1,0 +1,265 @@
+
+;;globals [modulus infinity]
+
+
+;;to setup-globals
+;;set infinity 1.0E+10
+;set max-size-neighborhood 0.5
+;;end
+
+
+;*****************************
+; INIT COMMON NETWORK
+;*****************************
+
+;;COMMUN AUX DIFFERENTS RESEAUX
+to init-param-node [x y]
+  set xcor x
+  set ycor y
+  set S_Node gS-At-node 
+  set I_Node gI-At-node  
+  set R_Node gR-At-Node 
+  set mobility-rate-node gmobility-rate
+end 
+
+to create-my-edge [node1 node2 color-value]
+  
+  ask node1 [
+   create-edge-with node2
+  [
+    set a node1
+    set b node2
+    set color white
+  ]
+]
+  ask node1 [set adjacent fput node2 [adjacent] of node1]
+  ask node2 [set adjacent fput node1 [adjacent] of node2]
+end
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Setup network
+;;nodes = nodes, edges = relations between neighbors
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;chain network
+
+to setup-chain [nb]
+if nb > (world-height - 1) 
+[user-message (word "You can use only " (world-height - 1) " nodes for a chain") stop]
+let vertical-space-between-node (world-height / nb) 
+let i-step 0
+  repeat nb
+  [
+  create-nodes 1
+  [
+    set color white
+    set adjacent []
+    set shape "circle 2"
+    setxy 0 ((min-pycor + (vertical-space-between-node / 2)) + (vertical-space-between-node * i-step))
+    if any? other nodes [create-edge-with min-one-of other nodes [distance myself] ]
+  ]
+  set i-step i-step + 1
+  ]
+end
+
+
+
+;;Random network
+to setup-simple-random [nb]
+
+  create-nodes nb
+  [
+   set color white
+    set adjacent []
+    set shape "circle 2"
+    
+    init-param-node  random-xcor * 0.95 random-ycor * 0.95
+    
+  if any? nodes-here [fd 1]]
+  ask nodes 
+     [
+       let edge-random other nodes in-radius gradius-random-network 
+       create-edges-with edge-random
+    
+     ]
+     ask nodes with [count link-neighbors = 0] [die]
+end
+
+;;Complete Graph
+
+to setup-completeGraph [nb]
+
+  create-nodes nb
+  [
+    set color white
+    set adjacent []
+    set shape "circle 2"
+  ]
+layout-circle (sort nodes) max-pxcor - 1
+wire-them-complete
+end
+
+
+to wire-them-complete
+  ask nodes
+  [
+    create-edges-with other nodes
+  ]
+end
+
+
+
+;;Regular Graph
+
+to setup-regularGraph [nb contiguity_order]
+
+  create-nodes nb
+  [
+    set color white
+    set adjacent []
+    set shape "circle 2"
+  ]
+layout-circle (sort nodes) max-pxcor - 1
+wire-them-regular
+end
+
+
+to wire-them-regular
+  while [ any? nodes with [count link-neighbors < Regular_graph-Order]]
+  [
+  ask one-of nodes with [count link-neighbors < Regular_graph-Order]
+  [
+    create-edges-with min-n-of Regular_graph-Order other nodes [distance-nowrap myself]
+  ]
+  ]
+end
+
+
+
+
+
+
+;;Small-world
+;;Inspired from model library
+
+to setup-smallworld [nb]
+
+  create-nodes nb
+  [
+    set color white
+    set adjacent []
+    set shape "circle 2"
+  ]
+layout-circle (sort nodes) max-pxcor - 1
+wire-them
+rewire-all
+end
+
+
+to wire-them
+  ask nodes
+  [
+    create-edges-with min-n-of 2 other nodes [distance myself] 
+  ]
+end
+
+to rewire-all
+    ask edges [
+
+      ;; whether to rewire it or not?
+      if (random-float 1) < grewiring-probability-SmallWorld ;rewiring-probability
+      [
+        ;; "a" remains the same
+        let node1 end1
+        ;; if "a" is not connected to everybody
+        if [ count link-neighbors ] of end1 < (count nodes - 1)
+        [
+          ;; find a node distinct from node1 and not already a neighbor of node1
+          let node2 one-of nodes with [ (self != node1) and (not link-neighbor? node1) ]
+          ;; wire the new edge
+          ask node1 [ create-edge-with node2 ]
+
+        ]
+      ]
+     
+    ]
+
+end
+
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;;; Scale Free Network 
+;;;;;;;;;;;;;;;;;;;;;;;
+
+to setup-scaleFree [nb]
+  make-SF-node nobody 
+  make-SF-node one-of other turtles
+  repeat (nb - 2)
+  [
+    make-SF-node find-partner         ;; find partner & use it as attachment                           
+    layout 
+  ]
+  repeat 100 [layout ]
+end
+
+;; used for creating a new node
+to make-SF-node [old-node]
+  create-nodes 1
+  [
+     set color white
+     set adjacent []
+     set shape "circle 2"
+    if old-node != nobody
+      [ create-edge-with old-node
+        ;; position the new node near its partner
+        move-to old-node
+        fd 8
+      ]
+  ]
+end
+
+to-report find-partner
+  let total random-float sum [count link-neighbors] of turtles
+  let partner nobody
+  ask turtles
+  [
+    let nc count link-neighbors
+    ;; if there's no winner yet...
+    if partner = nobody
+    [
+      ifelse nc > total
+        [ set partner self ]
+        [ set total total - nc ]
+    ]
+  ]
+  report partner
+end
+
+
+to layout
+  ;; the number 3 here is arbitrary; more repetitions slows down the
+  ;; model, but too few gives poor layouts
+  repeat 3 [
+    ;; the more turtles we have to fit into the same amount of space,
+    ;; the smaller the inputs to layout-spring we'll need to use
+    let factor sqrt count turtles
+    ;; numbers here are arbitrarily chosen for pleasing appearance
+    layout-spring turtles links (0.5 / factor) (10 / factor) (10 / factor)
+    display  ;; for smooth animation
+  ]
+  ;; don't bump the edges of the world
+  let x-offset max [xcor] of turtles + min [xcor] of turtles
+  let y-offset max [ycor] of turtles + min [ycor] of turtles
+  ;; big jumps look funny, so only adjust a little each time
+  set x-offset limit-magnitude x-offset 0.1
+  set y-offset limit-magnitude y-offset 0.1
+  ask turtles [ setxy (xcor - x-offset / 2) (ycor - y-offset / 2) ]
+end
+
+to-report limit-magnitude [number limit]
+  if number > limit [ report limit ]
+  if number < (- limit) [ report (- limit) ]
+  report number
+end
+
