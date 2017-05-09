@@ -1,0 +1,46 @@
+;**************************
+;; Fractal network (Serpienski)
+;**************************
+
+; create a node and set its initial location and modulus
+to setup-Serpienski 
+  
+  create-nodes 1
+  [
+    set heading 0
+    set shape "circle 2"
+     set adjacent []  
+     
+     ifelse nb-seeds-fractal = 3
+    [init-param-node 0 -20]
+    [init-param-node 0 -1]
+    set modulus 0.55 * max-pycor ; ; 70
+    
+  ]
+end
+
+; ask the nodes to go forward by modulus, create a new node to
+; draw the next iteration of sierpinski's tree, and return to its place
+to grow-Serpienski
+  
+  hatch 1
+    [
+     fd modulus
+     create-edge-with myself
+     ifelse nb-seeds-fractal = 3 [set modulus (0.5 * modulus) ]  ; new node's modulus is half its parent's
+                                  [set modulus (0.4 * modulus) ]
+    ]
+end
+
+; draw the sierpinski tree
+to Create-Serpienski [nb]
+  ask nodes with [count edge-neighbors < 2]
+  [
+    repeat nb
+    [
+      grow-Serpienski
+      right  360 / nb  ; turn counter-clockwise to draw more legs
+    ]
+  ]
+  tick
+end

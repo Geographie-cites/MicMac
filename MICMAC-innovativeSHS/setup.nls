@@ -1,0 +1,70 @@
+to setup
+  
+  clear-all
+  reset-ticks 
+  set mouse-clicked false
+  set new-choose false
+  
+  init-widget-global
+  initialise-globals
+ 
+  
+  if gnetwork-choice = "random"
+  [
+    setup-simple-random gnumber-nodes
+  ]
+  
+  if gnetwork-choice = "load-file"
+  [
+    load-csv
+  ]
+ 
+  ;; to compute network parameters
+  ;; do-calculations
+  
+  
+  identify-infected-nodes 
+  clear-all-plots
+  reset-ticks
+end
+
+To setup-agents
+  ask edges 
+  [
+    set edge_trafic 0
+    set edge_infected 0
+    set thickness 0
+  ]
+  ifelse gInfect_One_Node?
+[infect-one-node]
+[setup-again-mobileagents]
+end
+
+
+to setup-again-mobileagents
+  
+  ask mobilegroups [die]
+  
+  ask nodes 
+  [
+    init-param-node xcor ycor id
+    set color white
+    set size 2
+    set tagged? 0
+  ] 
+  
+  init-widget-global
+  initialise-globals
+  
+  let result-calibrage do-calibrage gmobility-rate (gS-At-Node - 1) 1 gR-At-Node gnumber-nodes gbeta gintegrationStep gTerritorySize-km gdurationEpidemy-days gEpsilon gTypePopCalibrage
+  
+  set gspeed-factor item 0 result-calibrage
+  set gnbStepCalib item 1 result-calibrage
+  set gpotential-population-departure item 2 result-calibrage 
+  set gmobility-rate-by-tick item 3 result-calibrage
+
+  create-testNode
+  clear-all-plots
+  reset-ticks
+  
+end
