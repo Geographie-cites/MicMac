@@ -55,34 +55,20 @@ to-report do-calibrage [#mobility-rate #S-At-Node #I-At-Node #R-At-Node #number-
   let dureeDt 0
   let nbStepCalib 0
   let potential-population-departure 0
-  
-  if Pop-Calibrage = "Pop-totale"
-  [
-    set Population-at-Calibrage-Node ( #S-At-Node + #I-At-Node + #R-At-Node ) * #number-nodes
-  ]
-  if Pop-Calibrage = "Pop-one-node"
-  [
+  let mobility-rate-by-tick 0
+
     set Population-at-Calibrage-Node #S-At-Node + #I-At-Node + #R-At-Node
-  ]
+ 
   
   let whoId 0
   
   create-Nodes 1 
   [
-    if Pop-Calibrage = "Pop-totale"
-    [
-      set S_Node #S-At-Node * #number-nodes
-      set I_Node #I-At-Node * #number-nodes
-      set R_node #R-At-Node * #number-nodes
-      set whoId who
-    ]
-    if Pop-Calibrage = "Pop-one-node"
-    [
+ 
       set S_Node #S-At-Node 
       set I_Node #I-At-Node 
       set R_node #R-At-Node 
       set whoId who      
-    ]
   ]
   
   
@@ -116,12 +102,15 @@ to-report do-calibrage [#mobility-rate #S-At-Node #I-At-Node #R-At-Node #number-
   [
     die
   ]
-  
+
+   set mobility-rate-by-tick #mobility-rate / (nbStepCalib / #durationEpidemy-days)
+    
    show word "number node " #number-nodes
    show word "TOT " (#S-At-Node + #I-At-Node + #R-At-Node )
    
   set total-Population ( #number-nodes * (#S-At-Node + #I-At-Node + #R-At-Node ))
   
+  ;;;;MODIF ARN mobility-rate-by-tick ==> #mobility-rate
   set total-population-to-fly total-Population * #mobility-rate * #durationEpidemy-days
   set potential-population-departure round (total-population-to-fly / nbStepCalib)
 
@@ -134,8 +123,9 @@ to-report do-calibrage [#mobility-rate #S-At-Node #I-At-Node #R-At-Node #number-
   show word "total population : " Total-population
   show word "population to fly : " Total-population-to-fly
   show word "instantaneous total population to fly : " potential-population-departure 
+  show word "mobility-rate-tick " mobility-rate-by-tick
   
-  report (list speed-factor nbStepCalib potential-population-departure)
+  report (list speed-factor nbStepCalib potential-population-departure mobility-rate-by-tick)
 
 end
 

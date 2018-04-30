@@ -7,12 +7,15 @@ globals
   last2
   group-tag-tick
   gEpsilon-stop
+  
 
   city-to-display
   end-of-epidemy 
   initial-population
   
   average-path-length
+  
+  gCsvPath
   
   ;;calibrage
   gPopulation-at-Calibrage-Node
@@ -48,10 +51,11 @@ globals
   gtheta2
  
   ;;network 
-  gnumber-nodes
+  gnumber-nodes-for-generation
   gradius-random-network  
   grewiring-probability-SmallWorld
   gnetwork-choice
+  gnumber-effective-node
   
   ;; epidemio
   galpha
@@ -74,6 +78,7 @@ globals
   ;; mobility rate
   ginstantaneous-effective-mobility-rate
   gmobility-rate
+  gmobility-rate-by-tick
   gend-effective-mobility-rate
   
   ;; Outputs
@@ -89,12 +94,15 @@ globals
   gcumulated-infection-in-flight
   gcumulated-pop-flight-real
   gcumulated-pop-flight-expected
-  
-  
+  gTypePopCalibrage
+  gduration-days
+  gpop-expected
+  gInfect_One_Node?
 ]
 
 
 to init-widget-global
+  set gCsvPath network-path
   ;; Stop
   set gEpsilon-stop Epsilon-stop
   ;; epidemio
@@ -108,7 +116,7 @@ to init-widget-global
   set gdead1 dead1
   
   ;;network
-  set gnumber-nodes number-nodes
+  set gnumber-nodes-for-generation number-nodes-for-generation
   set gradius-random-network radius-random-network
   set grewiring-probability-SmallWorld rewiring-probability-SmallWorld 
   set gnetwork-choice network-choice 
@@ -169,6 +177,9 @@ to initialise-globals
   set gcumulated-infection-in-flight 0
 
   set gout-traffic-reduction-instantaneous 0
+  set gTypePopCalibrage "Pop-totale"
+  
+  set gInfect_One_Node? true
   
   ;;calibrage
   set gdureeDt 0

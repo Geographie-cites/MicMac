@@ -13,9 +13,10 @@
 ;*****************************
 
 ;;COMMUN AUX DIFFERENTS RESEAUX
-to init-param-node [x y]
+to init-param-node [x y id-node]
   set xcor x
   set ycor y
+  set id id-node
   set S_Node gS-At-node 
   set I_Node gI-At-node  
   set R_Node gR-At-Node 
@@ -69,14 +70,16 @@ end
 
 ;;Random network
 to setup-simple-random [nb]
-
+  
+  let id-node 0
   create-nodes nb
   [
+   set id-node id-node + 1
    set color white
     set adjacent []
     set shape "circle 2"
     
-    init-param-node  random-xcor * 0.95 random-ycor * 0.95
+    init-param-node  random-xcor * 0.95 random-ycor * 0.95 id-node
     
   if any? nodes-here [fd 1]]
   ask nodes 

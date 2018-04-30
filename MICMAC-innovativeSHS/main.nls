@@ -1,5 +1,7 @@
 to main-loop
-  
+   
+  if not any? nodes with [I_node > 0] [user-message "Infect one city first" stop]
+    
  let cumulated-lost-passenger 0
   
   ;; --------------------
@@ -61,7 +63,8 @@ to main-loop
   ;; --------------------
   ;; COMPUTE DEPARTURE
   ;; --------------------
-    
+  
+  ;; compute-departure function return sum of informations concerning airport departures (real, expected, canceled passengers)     
   let result-departure compute-departure gpotential-population-departure gairplane-size gairplane-speed gspeed-factor gstrategy-redistribution gnumber-nodes
   
   set gsum-pop-flight-real item 0 result-departure
@@ -129,9 +132,7 @@ to main-loop
   
   
   find-local-maxima-I
-  if Map-Network? = "No" and any? edges with [thickness > 0] [ask edges [set thickness 0]]
-  if Map-Network? = "Infected Travellers" [map-infected-on-edges]
-  if Map-Network? = "Trafic" [map-trafic-on-edges]
+  map-output
   
   tick
 
@@ -225,7 +226,9 @@ to-report compute-departure [#potential-population-departure #airplane-size #air
           
         ]
         [
-          ;; on genere des passagers avec une multi nomiame
+          ;; on genere des passagers avec une multi nomiale
+          ;; plane-S-passengers et plane-R-passengers : passager S et R dans l'avion
+          ;; potential-I-passengers : passager malade qui vont potentiellement monter dans l'avion
           let potential-passengers generate-passengers (list S_Node I_Node R_Node) gairplane-size
           let plane-S-passengers item 0 potential-passengers 
           let potential-I-passengers item 1 potential-passengers 
@@ -233,11 +236,12 @@ to-report compute-departure [#potential-population-departure #airplane-size #air
           
           let cancelled-I-passengers 0
           
-          ;; on applique la strategie 3, certains de ces passages vont annuler leur reservations
+          ;; on applique la strategie 3, certains de ces passages vont annuler leur reservations, on les stocke 
           if gstrategy3-riskCulture = true [
             set cancelled-I-passengers apply-strategy-3 potential-I-passengers
           ]
           
+          ;; passager qui monte reellement dans l'avion
           let plane-I-passengers potential-I-passengers - cancelled-I-passengers
           
           ;; TEST SIR STOCK REMOVAL COMPARED TO PASSENGER DEPARTURE
@@ -254,7 +258,7 @@ to-report compute-departure [#potential-population-departure #airplane-size #air
           
           set sum-passenger-canceled sum-passenger-canceled + (#airplane-size - pop-which-leave-airport)
           
-          ;; On indique les passagers perdu au noeud de destination, ceux ci se cumule avec les effets de la redistribution
+          ;; On indique les passagers perdu au noeud de destination, ceux ci vont se cumuler avec les effets de la redistribution
           ask end-node
           [
             set lost-passengers-in lost-passengers-in + (#airplane-size - pop-which-leave-airport)
@@ -404,8 +408,8 @@ end
 
 to infect-node 
 
-  set i_node i_node + 1
-  set s_node s_node - 1
+  set i_node i_node + 200
+  set s_node s_node - 200
   set color red
   set size 2 + ln i_node
   set tagged? ticks

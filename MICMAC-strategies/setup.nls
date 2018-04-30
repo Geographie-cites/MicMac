@@ -11,39 +11,46 @@ to setup
   
   if gnetwork-choice = "chain"
   [
-    setup-chain gnumber-nodes
+    setup-chain gnumber-nodes-for-generation
   ]
   
   if gnetwork-choice = "random"
   [
-    setup-simple-random gnumber-nodes
+    setup-simple-random gnumber-nodes-for-generation
   ]
   if gnetwork-choice = "complete"
   [
-    setup-completeGraph gnumber-nodes
+    setup-completeGraph gnumber-nodes-for-generation
   ]
   
+  if gnetwork-choice = "load-file"
+  [
+    load-csv gCsvPath
+    
+  ]
+
   if gnetwork-choice = "regular"
   [
-    setup-regularGraph gnumber-nodes Regular_graph-Order
+    setup-regularGraph gnumber-nodes-for-generation Regular_graph-Order
   ]
   
   
   if gnetwork-choice = "smallworld"
   [
-    setup-smallworld gnumber-nodes
+    setup-smallworld gnumber-nodes-for-generation
   ]
   
   if gnetwork-choice = "scale-free"
   [
-    setup-scalefree gnumber-nodes
+    setup-scalefree gnumber-nodes-for-generation
   ]
   
+  set gnumber-effective-node count(nodes)
   
-  if gnetwork-choice = "US Air"
-  [
-    setup-network-airport
-  ]
+  ;;if gnetwork-choice = "US Air"
+  ;;[
+  ;;  setup-network-airport
+  ;; ]
   
   if gnetwork-choice = "empty"
   [
@@ -60,7 +67,17 @@ to setup
 end
 
 To setup-agents
-  ifelse Infect_One_Node?
+  ask edges 
+  [
+    set edge_trafic 0
+    set edge_infected 0
+    set thickness 0
+    set color white
+  ]
+
+ask nodes [set hidden? false]
+  
+  ifelse gInfect_One_Node?
 [infect-one-node]
 [setup-again-mobileagents]
 end
@@ -72,7 +89,7 @@ to setup-again-mobileagents
   
   ask nodes 
   [
-    init-param-node xcor ycor
+    init-param-node xcor ycor id
     set color white
     set size 2
     set tagged? 0
@@ -81,14 +98,39 @@ to setup-again-mobileagents
   init-widget-global
   initialise-globals
   
-  let result-calibrage do-calibrage gmobility-rate (S-At-Node - 1) 1 R-At-Node gnumber-nodes gbeta gintegrationStep gTerritorySize-km gdurationEpidemy-days gEpsilon
+  let result-calibrage do-calibrage gmobility-rate (gS-At-Node - 1) 1 gR-At-Node gnumber-effective-node gbeta gintegrationStep gTerritorySize-km gdurationEpidemy-days gEpsilon
   
   set gspeed-factor item 0 result-calibrage
   set gnbStepCalib item 1 result-calibrage
   set gpotential-population-departure item 2 result-calibrage 
+  set gmobility-rate-by-tick item 3 result-calibrage
 
 
   create-testNode
+  clear-all-plots
+  reset-ticks
+  
+end
+
+to setup-openmole [#nb-infected #csvPath #nodeID]
+  
+  reset-ticks 
+  set mouse-clicked false
+  set new-choose false
+  
+  load-csv #csvPath
+  
+  infect-a-node #nb-infected #nodeID
+  
+  let result-calibrage do-calibrage gmobility-rate (gS-At-Node - 1) 1 gR-At-Node gnumber-effective-node gbeta gintegrationStep gTerritorySize-km gdurationEpidemy-days gEpsilon 
+  
+  set gspeed-factor item 0 result-calibrage
+  set gnbStepCalib item 1 result-calibrage
+  set gpotential-population-departure item 2 result-calibrage 
+  set gmobility-rate-by-tick item 3 result-calibrage
+
+  create-testNode
+  
   clear-all-plots
   reset-ticks
   

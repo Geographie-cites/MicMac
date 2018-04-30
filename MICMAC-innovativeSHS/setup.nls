@@ -34,7 +34,11 @@ To setup-agents
     set edge_trafic 0
     set edge_infected 0
     set thickness 0
+    set color white
   ]
+
+ask nodes [set hidden? false]
+  
   ifelse gInfect_One_Node?
 [infect-one-node]
 [setup-again-mobileagents]

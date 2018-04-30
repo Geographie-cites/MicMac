@@ -1,6 +1,5 @@
-
-extensions [rungekuta csv]
-__includes ["output_indicator.nls" "ui.nls" "network-generation.nls" "import-network-airports.nls" "network-indicators.nls"
+extensions [csv rungeKuta]
+__includes ["output_indicator.nls" "ui.nls" "network-generation.nls" "network-indicators.nls"
   "init_globals.nls"  "setup.nls"  "main.nls" "calibration_and_test.nls" "utils_reporters.nls" "utils_interactivity.nls" "lotterie.nls" "saveOrLoadCSVFile.nls"]
 
 undirected-link-breed [ edges edge ]
@@ -41,42 +40,14 @@ edges-own
   edge_trafic
   edge_infected
   ]
-
-
-
-
-
-;________________________
-;Map Traffic on Edges
-;
-;A placer au bon endroit !
-;------------------------
-
-
-to map-trafic-on-edges
-  let reducfactor 0.1
- ask edges
- [
-  set thickness (ln (edge_trafic + 1)) * reducfactor
- ]
-end
-
-
-to map-infected-on-edges
-  let reducfactor 0.5
- ask edges
- [
-  set thickness (ln (edge_infected + 1)) * reducfactor
- ]
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 425
 10
-908
-514
-30
-30
+906
+492
+-1
+-1
 7.7541
 1
 10
@@ -219,7 +190,7 @@ gamma
 gamma
 0
 1
-0
+0.0
 0.001
 1
 NIL
@@ -271,7 +242,7 @@ birth
 birth
 0
 1
-0
+0.0
 0.01
 1
 NIL
@@ -286,7 +257,7 @@ dead1
 dead1
 0
 1
-0
+0.0
 0.001
 1
 NIL
@@ -301,7 +272,7 @@ dead2
 dead2
 0
 1
-0
+0.0
 0.001
 1
 NIL
@@ -348,7 +319,7 @@ number-nodes
 number-nodes
 2
 1000
-40
+40.0
 1
 1
 NIL
@@ -363,7 +334,7 @@ radius-random-network
 radius-random-network
 3
 15
-10
+10.0
 1
 1
 NIL
@@ -596,7 +567,7 @@ theta1
 theta1
 0
 1
-0.0016
+5.0E-4
 0.0001
 1
 NIL
@@ -673,7 +644,7 @@ PLOT
 540
 1475
 695
-Effect of strategies on Traffic
+Cumulated Traffic Loss
 NIL
 NIL
 0.0
@@ -684,7 +655,7 @@ true
 false
 "" ""
 PENS
-"D_traffic" 1.0 0 -16777216 true "" "plot gout-traffic-reduction-instantaneous"
+"Traffic Loss%" 1.0 0 -16777216 true "" "if gcumulated-pop-flight-real > 0 \n [Plot (gcumulated-pop-flight-expected - gcumulated-pop-flight-real) / gcumulated-pop-flight-expected * 100]"
 
 SLIDER
 1025
@@ -747,7 +718,7 @@ theta2
 theta2
 0
 1
-0.05
+0.033
 0.001
 1
 NIL
@@ -841,7 +812,7 @@ SWITCH
 558
 strategy-redistribution
 strategy-redistribution
-0
+1
 1
 -1000
 
@@ -871,7 +842,7 @@ TEXTBOX
 565
 1370
 591
-Eval Strategy 1 & 2 & 3
+Cumulated Traffic Loss
 11
 0.0
 1
@@ -882,7 +853,7 @@ INPUTBOX
 420
 210
 Epsilon-stop
-1
+1.0
 1
 0
 Number
@@ -1029,27 +1000,6 @@ gpotential-population-departure
 11
 
 MONITOR
-1543
-55
-1683
-100
-NIL
-average-path-length
-17
-1
-11
-
-TEXTBOX
-1543
-13
-1731
-52
-**************************\n* Network indicators  *\n**************************
-11
-0.0
-1
-
-MONITOR
 835
 780
 965
@@ -1174,12 +1124,12 @@ NIL
 1
 
 BUTTON
-1290
-120
-1367
-153
-NIL
-init-csv
+50
+285
+217
+318
+create csv network
+create-csv
 NIL
 1
 T
@@ -1190,22 +1140,26 @@ NIL
 NIL
 1
 
-BUTTON
-1290
-160
-1370
-193
+CHOOSER
+110
+225
+245
+270
+Output-Mapping
+Output-Mapping
+"Standard View" "Trafic" "Infected Travellers" "Airports Closed by Quarantine"
+0
+
+MONITOR
+1135
+265
+1237
+310
 NIL
-insert-csv\n
-NIL
+city-to-display
+17
 1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1537,9 +1491,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 5.3.1
+NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -2146,7 +2099,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 1
 @#$#@#$#@

@@ -12,6 +12,9 @@ end
 to compute-end-indicator 
     
   set gduration (ticks - min [tagged?] of nodes)
+  set gduration-days gduration / ( gnbStepCalib / 60)
+  
+  set gpop-expected compute-pop-total * gmobility-rate * gduration-days
   
   let pop (sum [S_Node + I_Node + R_Node] of Nodes) + (sum [S_Group + I_Group + R_Group] of MobileGroups)
   
@@ -22,8 +25,87 @@ to compute-end-indicator
   set gtotal-number-people-infected ((compute-pop-total-with-state "R" + compute-pop-total-with-state "I") / pop) * 100   
 
   ;; (population cumule ayant vole / population totale initiale) / (duree theorique de l'epidemie * (duree reelle epidemie / nb pas necessaire au calibrage) )
-  set gend-effective-mobility-rate (gcumulated-pop-flight-real / ( gnumber-nodes * (gS-At-Node + gI-At-Node + gR-At-Node ))) / ( gDurationEpidemy-days  * ( gduration / gnbStepCalib) )
+  set gend-effective-mobility-rate (gcumulated-pop-flight-real / ( gnumber-effective-node * (gS-At-Node + gI-At-Node + gR-At-Node ))) / ( gDurationEpidemy-days  * ( gduration / gnbStepCalib) )
 
 
 
+end
+
+
+to-report %passengers-lost
+  
+  let p-lost (gcumulated-pop-flight-expected - gcumulated-pop-flight-real) / gcumulated-pop-flight-expected * 100
+  let output 0
+  ifelse not S1_Quarantine and not S2_Avoidance and not S3_RiskCulture 
+  [set output 0]
+  [set output p-lost]
+  report output
+end
+
+
+;________________________
+;Map Outputs
+;
+;
+;------------------------
+
+to map-output
+  
+   if cartographie = "Standard" [ask edges [set thickness 0 set color white] show-infected-nodes] 
+  if cartographie = "Routes prises par le virus" [map-infected-on-edges show-infected-nodes]
+  if cartographie = "Traffic aérien" [map-trafic-on-edges show-infected-nodes ]
+  if cartographie = "Aéroports fermés ou évités" [ask nodes [ifelse (in-airport + out-airport != 2) [set color yellow] [if color = yellow [set color red]]]]
+if Transparence?  [set-transparency]
+  end
+
+
+to set-transparency
+  set-transparency-turtles
+  set-transparency-links
+end
+
+
+to set-transparency-turtles
+  ask turtles [
+    ifelse is-list? color
+    [ set color lput 150 sublist color 0 3 ]
+    [ set color lput 150  extract-rgb color ]
+  ]
+  display
+end
+  
+to set-transparency-links
+  ask links with [color = white] [
+    ifelse is-list? color
+    [ set color lput 150 sublist color 0 3 ]
+    [ set color lput 150 extract-rgb color ]
+  ]
+  display
+end
+  
+
+
+
+to show-infected-nodes
+ask nodes with [I_node > 0] [set color red]
+end
+
+to map-trafic-on-edges
+  let reducfactor 0.1
+ ask edges
+ [
+   set color white
+  set thickness (ln (edge_trafic + 1)) * reducfactor
+ ]
+end
+
+
+to map-infected-on-edges
+  let reducfactor 0.1
+  ask edges with [edge_infected = 0]  [set thickness 0]
+ ask edges with [edge_infected > 1] 
+ [
+   set color red
+  set thickness (ln (edge_infected + 1)) * reducfactor 
+ ]
 end

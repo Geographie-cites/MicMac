@@ -63,11 +63,11 @@ to insert-csv
 
 end
 
-to load-csv 
+to load-csv [#csvPath]
   
   ;; LOAD NODES
   
-  let file_n "nodes.csv"
+  let file_n word #csvPath "nodes.csv"
   file-open file_n
   let header1 csv:from-row file-read-line
 
@@ -90,7 +90,7 @@ to load-csv
 
  ;; LOAD LINKS
  
-  let file_l "links.csv"
+  let file_l word #csvPath "links.csv"
   file-open file_l
   let header2 csv:from-row file-read-line
   
@@ -98,7 +98,8 @@ to load-csv
   [
     let result (csv:from-row file-read-line ",")
     ask nodes with [ id = item 0 result] [
-      create-edge-with one-of nodes with [ id = item 1 result]
+      let node-choosen one-of nodes with [ id = item 1 result]
+      create-edge-with node-choosen
     ]   
   ]
   file-close

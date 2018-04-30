@@ -5,13 +5,13 @@ to select-city-to-infect
   if mouse-down?
   [
     show (word mouse-xcor mouse-ycor)
-    let city-to-infect one-of nodes with [distancexy-nowrap mouse-xcor mouse-ycor < 1.0]
+    let city-to-infect min-one-of nodes  [distancexy-nowrap mouse-xcor mouse-ycor] 
     
     ask city-to-infect
     [
       if (S_Node > 1) 
       [
-        infect-node
+        infect-node 1
       ]  
     ]  
     
@@ -68,7 +68,7 @@ to make-node
           set size 2
           set shape "circle 2"
           set node-list fput self node-list
-          init-param-node  mouse-xcor  mouse-ycor
+          init-param-node  mouse-xcor  mouse-ycor id
         ]
       ]
     ]
@@ -123,8 +123,8 @@ to remove-selected-edge
     ]
 end
 
-to move [node x y]
-  ask node
+to move [#node x y]
+  ask #node
   [
     setxy x y
   ]

@@ -14,6 +14,8 @@ globals
   
   average-path-length
   
+  gOutput-Mapping
+  
   ;;calibrage
   gPopulation-at-Calibrage-Node
   gdureeDt
@@ -98,6 +100,10 @@ globals
 
 
 to init-widget-global
+
+  ;; UI
+  set gOutput-Mapping Output-Mapping
+  
   ;; Stop
   set gEpsilon-stop Epsilon-stop
 
@@ -125,6 +131,7 @@ to init-widget-global
   
   ;;mobility-rate
   set gmobility-rate mobility-rate
+
 
 end
 

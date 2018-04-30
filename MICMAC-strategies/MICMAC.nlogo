@@ -1,7 +1,6 @@
-
-extensions [rungekuta]
-__includes ["output_indicator.nls" "ui.nls" "network-generation.nls" "import-network-airports.nls" "network-indicators.nls"
-  "init_globals.nls"  "setup.nls"  "main.nls" "calibration_and_test.nls" "utils_reporters.nls" "utils_interactivity.nls" "lotterie.nls"]
+extensions [ csv rungekuta]
+__includes ["output_indicator.nls" "ui.nls" "network-generation.nls"  "network-indicators.nls"
+  "init_globals.nls"  "setup.nls"  "main.nls" "calibration_and_test.nls" "utils_reporters.nls" "utils_interactivity.nls" "lotterie.nls" "saveOrLoadCSVFile.nls"]
 
 undirected-link-breed [ edges edge ]
 breed [ nodes node ]
@@ -25,6 +24,7 @@ nodes-own [
 
 nodeTests-own [S_Node I_Node R_Node]
 MobileGroups-own [
+  Origin-node
   Next-Node
   speed ; 800 air
   S_Group
@@ -33,15 +33,21 @@ MobileGroups-own [
   S_Group-init
 ]
 
-edges-own [a b]
+edges-own
+[
+  a
+  b
+  edge_trafic
+  edge_infected
+  ]
 @#$#@#$#@
 GRAPHICS-WINDOW
 425
 10
-908
-514
-30
-30
+906
+492
+-1
+-1
 7.7541
 1
 10
@@ -153,7 +159,7 @@ INPUTBOX
 85
 390
 S-At-Node
-4000
+100000.0
 1
 0
 Number
@@ -164,7 +170,7 @@ INPUTBOX
 85
 451
 I-At-Node
-0
+0.0
 1
 0
 Number
@@ -175,7 +181,7 @@ INPUTBOX
 85
 515
 R-At-Node
-0
+0.0
 1
 0
 Number
@@ -198,7 +204,7 @@ BUTTON
 89
 NIL
 main-loop
-NIL
+T
 1
 T
 OBSERVER
@@ -217,7 +223,7 @@ gamma
 gamma
 0
 1
-0
+0.0
 0.001
 1
 NIL
@@ -304,10 +310,10 @@ NIL
 1
 
 TEXTBOX
-10
-10
-130
-51
+1525
+455
+1645
+496
 *******************\n* Network Creation\n*******************
 11
 0.0
@@ -332,7 +338,7 @@ birth
 birth
 0
 1
-0
+0.0
 0.01
 1
 NIL
@@ -347,7 +353,7 @@ dead1
 dead1
 0
 1
-0
+0.0
 0.001
 1
 NIL
@@ -362,7 +368,7 @@ dead2
 dead2
 0
 1
-0
+0.0
 0.001
 1
 NIL
@@ -384,7 +390,7 @@ INPUTBOX
 134
 782
 DurationEpidemy-days
-60
+60.0
 1
 0
 Number
@@ -395,7 +401,7 @@ INPUTBOX
 414
 515
 TerritorySize-km
-300
+300.0
 1
 0
 Number
@@ -423,44 +429,44 @@ gdureeDt
 11
 
 SLIDER
-10
-140
-240
-173
-number-nodes
-number-nodes
+1525
+585
+1802
+618
+number-nodes-for-generation
+number-nodes-for-generation
 2
 1000
-50
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-10
-175
-240
-208
+1525
+620
+1755
+653
 radius-random-network
 radius-random-network
 3
 15
-10
+0.0
 1
 1
 NIL
 HORIZONTAL
 
 CHOOSER
-10
-93
-240
-138
+1525
+538
+1755
+583
 network-choice
 network-choice
-"chain" "random" "regular" "complete" "smallworld" "scale-free" "US Air" "drawing"
-4
+"chain" "random" "load-file" "regular" "complete" "smallworld" "scale-free" "US Air" "drawing"
+2
 
 PLOT
 1220
@@ -537,7 +543,7 @@ INPUTBOX
 410
 780
 Epsilon
-0.001
+0.01
 1
 0
 Number
@@ -610,10 +616,10 @@ NIL
 1
 
 BUTTON
-5
-45
-120
-78
+15
+55
+130
+88
 setup Network
 setup
 NIL
@@ -638,15 +644,15 @@ initial-population - compute-pop-total
 11
 
 SLIDER
-10
-210
-240
-243
+1525
+655
+1755
+688
 rewiring-probability-SmallWorld
 rewiring-probability-SmallWorld
 0
 1
-1
+0.0
 0.1
 1
 NIL
@@ -708,7 +714,7 @@ INPUTBOX
 313
 515
 airplane-size
-80
+80.0
 1
 0
 Number
@@ -723,36 +729,6 @@ gtimeofmaxi
 0
 1
 11
-
-SLIDER
-85
-455
-220
-488
-alpha-airplane
-alpha-airplane
-0
-1
-0.2
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-85
-490
-220
-523
-beta-airplane
-beta-airplane
-0
-1
-0.5
-0.0001
-1
-NIL
-HORIZONTAL
 
 PLOT
 1220
@@ -852,7 +828,7 @@ theta1
 theta1
 0
 1
-0.05
+0.0
 0.0001
 1
 NIL
@@ -971,7 +947,7 @@ pcr
 pcr
 0
 1
-0.84
+0.0
 0.01
 1
 NIL
@@ -986,7 +962,7 @@ reduc-contagion
 reduc-contagion
 0
 1
-1
+0.0
 0.01
 1
 NIL
@@ -1023,7 +999,7 @@ theta2
 theta2
 0
 1
-0.05
+0.0
 0.001
 1
 NIL
@@ -1123,9 +1099,9 @@ strategy-redistribution
 
 TEXTBOX
 90
-285
+115
 230
-324
+154
 **********************\n* Disease parameters\n**********************
 11
 0.0
@@ -1133,9 +1109,9 @@ TEXTBOX
 
 TEXTBOX
 9
-284
+114
 115
-326
+156
 ************\n* Population\n************
 11
 0.0
@@ -1178,7 +1154,7 @@ INPUTBOX
 420
 210
 Epsilon-stop
-1
+20.0
 1
 0
 Number
@@ -1195,15 +1171,15 @@ gcumulated-infection-in-flight
 11
 
 SLIDER
-11
-243
-241
-276
+1526
+688
+1756
+721
 Regular_graph-Order
 Regular_graph-Order
 1
 number-nodes - 1
-49
+49.0
 1
 1
 NIL
@@ -1236,7 +1212,7 @@ INPUTBOX
 402
 575
 airplane-speed
-400
+800.0
 1
 0
 Number
@@ -1350,16 +1326,6 @@ gpotential-population-departure
 1
 11
 
-CHOOSER
-145
-680
-292
-725
-Pop-Calibrage
-Pop-Calibrage
-"Pop-totale" "Pop-one-node"
-1
-
 SWITCH
 250
 105
@@ -1372,12 +1338,12 @@ Infect_One_Node?
 -1000
 
 INPUTBOX
-90
-330
-175
-390
+95
+260
+180
+320
 alpha
-0.2
+0.13
 1
 0
 Number
@@ -1388,7 +1354,7 @@ INPUTBOX
 185
 450
 beta
-0.5
+0.18
 1
 0
 Number
@@ -1446,6 +1412,77 @@ gsum-passenger-canceled
 17
 1
 11
+
+CHOOSER
+255
+265
+410
+310
+Cartographie
+Cartographie
+"Standard" "Traffic aérien" "Routes prises par le virus" "Aéroports fermés ou évités"
+0
+
+SWITCH
+1520
+330
+1682
+363
+Transparence?
+Transparence?
+1
+1
+-1000
+
+INPUTBOX
+1525
+730
+1767
+790
+network-path
+./data/2/
+1
+0
+String
+
+BUTTON
+1525
+795
+1627
+828
+create-csv
+create-csv
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+INPUTBOX
+95
+325
+180
+385
+alpha-airplane
+0.13
+1
+0
+Number
+
+INPUTBOX
+95
+455
+185
+515
+beta-airplane
+0.18
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1777,9 +1814,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 5.3
+NetLogo 6.0.3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -2386,7 +2422,6 @@ true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 1
 @#$#@#$#@

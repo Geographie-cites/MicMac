@@ -33,3 +33,42 @@ end
 
 
 
+
+;________________________
+;Map Outputs
+;
+;
+;------------------------
+
+to map-output
+  
+  if gOutput-Mapping = "Standard View" [ask edges [set thickness 0 set color white] show-infected-nodes] 
+  if gOutput-Mapping = "Infected Travellers" [map-infected-on-edges show-infected-nodes]
+  if gOutput-Mapping = "Trafic" [map-trafic-on-edges show-infected-nodes ]
+  if gOutput-Mapping = "Airports Closed by Quarantine" [ask nodes [ifelse (in-airport + out-airport != 2) [set color yellow] [if color = yellow [set color red]]]]
+  end
+
+
+to show-infected-nodes
+ask nodes with [I_node > 0] [set color red]
+end
+
+to map-trafic-on-edges
+  let reducfactor 0.1
+ ask edges
+ [
+   set color white
+  set thickness (ln (edge_trafic + 1)) * reducfactor
+ ]
+end
+
+
+to map-infected-on-edges
+  let reducfactor 0.1
+  ask edges with [edge_infected = 0]  [set thickness 0]
+ ask edges with [edge_infected > 1] 
+ [
+   set color red
+  set thickness (ln (edge_infected + 1)) * reducfactor 
+ ]
+end

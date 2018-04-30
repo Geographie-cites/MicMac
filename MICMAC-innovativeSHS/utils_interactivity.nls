@@ -5,7 +5,7 @@ to select-city-to-infect
   if mouse-down?
   [
     show (word mouse-xcor mouse-ycor)
-    let city-to-infect one-of nodes with [distancexy-nowrap mouse-xcor mouse-ycor < 1.0]
+    let city-to-infect min-one-of nodes  [distancexy-nowrap mouse-xcor mouse-ycor] 
     
     ask city-to-infect
     [
@@ -123,8 +123,8 @@ to remove-selected-edge
     ]
 end
 
-to move [node x y]
-  ask node
+to move [#node x y]
+  ask #node
   [
     setxy x y
   ]

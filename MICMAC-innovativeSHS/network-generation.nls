@@ -1,13 +1,4 @@
 
-;;globals [modulus infinity]
-
-
-;;to setup-globals
-;;set infinity 1.0E+10
-;set max-size-neighborhood 0.5
-;;end
-
-
 ;*****************************
 ; INIT COMMON NETWORK
 ;*****************************
@@ -45,29 +36,6 @@ end
 ;;nodes = nodes, edges = relations between neighbors
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;chain network
-
-to setup-chain [nb]
-if nb > (world-height - 1) 
-[user-message (word "You can use only " (world-height - 1) " nodes for a chain") stop]
-let vertical-space-between-node (world-height / nb) 
-let i-step 0
-  repeat nb
-  [
-  create-nodes 1
-  [
-    set color white
-    set adjacent []
-    set shape "circle 2"
-    setxy 0 ((min-pycor + (vertical-space-between-node / 2)) + (vertical-space-between-node * i-step))
-    if any? other nodes [create-edge-with min-one-of other nodes [distance myself] ]
-  ]
-  set i-step i-step + 1
-  ]
-end
-
-
-
 ;;Random network
 to setup-simple-random [nb]
   
@@ -89,61 +57,6 @@ to setup-simple-random [nb]
     
      ]
      ask nodes with [count link-neighbors = 0] [die]
-end
-
-
-
-
-
-
-
-
-
-;;Small-world
-;;Inspired from model library
-
-to setup-smallworld [nb]
-
-  create-nodes nb
-  [
-    set color white
-    set adjacent []
-    set shape "circle 2"
-  ]
-layout-circle (sort nodes) max-pxcor - 1
-wire-them
-rewire-all
-end
-
-
-to wire-them
-  ask nodes
-  [
-    create-edges-with min-n-of 2 other nodes [distance myself] 
-  ]
-end
-
-to rewire-all
-    ask edges [
-
-      ;; whether to rewire it or not?
-      if (random-float 1) < grewiring-probability-SmallWorld ;rewiring-probability
-      [
-        ;; "a" remains the same
-        let node1 end1
-        ;; if "a" is not connected to everybody
-        if [ count link-neighbors ] of end1 < (count nodes - 1)
-        [
-          ;; find a node distinct from node1 and not already a neighbor of node1
-          let node2 one-of nodes with [ (self != node1) and (not link-neighbor? node1) ]
-          ;; wire the new edge
-          ask node1 [ create-edge-with node2 ]
-
-        ]
-      ]
-     
-    ]
-
 end
 
 
