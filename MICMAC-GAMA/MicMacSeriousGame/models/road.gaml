@@ -9,8 +9,10 @@ model road
 
 
 species road {
+	bool ODtrip <- false;
+	
 	aspect default {
-		draw shape color: #black;
+		draw shape color: (ODtrip?#cyan:#black);
 	}
 }
 

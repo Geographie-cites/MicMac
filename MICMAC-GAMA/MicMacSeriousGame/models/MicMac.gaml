@@ -12,13 +12,27 @@ import "airplane.gaml"
 import "road.gaml"
 import "GUI_originDestination.gaml"
 
+/*
+ * TODO 
+ *  - on tire origin - destination + un état inféctieux de BOB (en fonction de la ville)
+ *  - le joueur choisi où non de partir en fonction des ces infos (état infectieux de BOB et / ou de la ville
+ *  - lors des transits : seuls les individus en transit peuvent s'infecter
+ *  - laisser les avions en transit plusieurs tous sur un aéroport.
+ *  - modèles épidémio : Gillespie dans l'avion et dans le transit ?
+ */
+
 global {
 	file cities_shapefile <- file("../includes/test.shp");
 	geometry<city,geometry> shape <- envelope(cities_shapefile);
 
 	float step <- 1 #s;
 	 
-	graph city_graph <- spatial_graph([]);
+	graph city_graph <- undirected(spatial_graph([]));
+	
+	// Disease
+	float alpha <- 0.05 min: 0.0 max: 1.0;
+	float beta <- 0.4 min: 0.0 max: 1.0;
+	
 	
 	init{	
 		create city with: [myUnit::1#s,h::1] from: cities_shapefile;
@@ -96,53 +110,26 @@ global {
 //		}
 //	}
 	
-	action createPlane(city o, city d) {
-		create airplane {
-			location <- o.location;
-			target <- d;
-			
-			loop while: ( (S_plane + I_plane + R_plane) < capacity ) and ( (o.S > 1) or (o.I > 1) or (o.R > 1) ) {
-				int i <- rnd_choice([o.S,o.I,o.R]);
-
-				if(i = 0) {
-					if(o.S > 1) {
-						S_plane <- S_plane + 1;
-						o.S <- o.S - 1;							
-					}
-				} else if(i = 1) {
-					if(o.I > 1) {
-						I_plane <- I_plane + 1;	
-						o.I <- o.I - 1;
-					}										
-				} else {
-					if(o.R > 1) {
-						R_plane <- R_plane + 1;
-						o.R <- o.R - 1;							
-					}
-				}
-			}
-		}		
-	}
 }
 
 
 experiment maths type: gui {
 	output { 
-		display agts type: java2D {
+		display agts type: opengl {
 	//		image '../includes/world.png' position: { 0.05, 0.05 } size: { 0.9, 0.9 };
 			species road;
 			species city aspect: circle;
 			species airplane aspect: rectangle;
 		}
 		
-		display od {
+		display od /*type: opengl*/ {
 			species OD aspect: odList;
 			species accept aspect: acceptBtn;
 			event mouse_down action: click_od;
 			
 		}
 		
-	display display_charts {
+/* 	display display_charts {
 			chart "SIR_agent" type: series background: #white {
 				data 'Population total' value: city sum_of(each.S + each.I + each.R) + airplane sum_of(each.S_plane + each.I_plane + each.R_plane) color: #black;
 				data 'S' value: city sum_of(each.S) color: #green ;				
@@ -150,5 +137,7 @@ experiment maths type: gui {
 				data 'R' value: city sum_of(each.R) color: #blue ;
 			}
 		}		
+	* 
+	*/
 	}
 }

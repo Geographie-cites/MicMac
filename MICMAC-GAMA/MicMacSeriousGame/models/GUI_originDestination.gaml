@@ -18,6 +18,7 @@ global {
 	action click_od { 
 		// Re init the agents
 		ask city {ODtrip <- false;}
+		ask road {ODtrip <- false;}
 		
 		// Get agents on which the user has clicked
 		OD overlappedOD <- first(OD overlapping(#user_location));
@@ -26,11 +27,13 @@ global {
 		
 		ask overlappedOD {
 			color <- #red;
-	// BEN : en cours 
-	//		path pp <- city_graph path_between(self.origin,self.destination);
-	//		geometry chemin <- pp.;
-			self.origin.ODtrip <- true;
-			self.destination.ODtrip <- true;
+			path pp <- city_graph path_between(self.origin,self.destination);		
+			loop c over: pp.vertices {
+				city(c).ODtrip <- true;
+			}
+			loop r over: pp.edges {
+				road(r).ODtrip <- true;
+			}
 		}
 		ask OD - overlappedOD {
 			color <- #white;
@@ -60,7 +63,7 @@ species OD {
 	accept refusal;
 	
 	rgb color <- #white;
-	
+
 	action updateShape {
 		int indexList <-  list_OD index_of(self);
 		shape <- rectangle(20000,3000) at_location({10000,indexList*3000 + 2000});

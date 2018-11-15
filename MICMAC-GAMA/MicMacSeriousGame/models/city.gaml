@@ -16,8 +16,6 @@ species city {
 	float I <- 0.0; 
 	float R <- 0.0; 
 	
-	float alpha <- 0.05 min: 0.0 max: 1.0;
-	float beta <- 0.4 min: 0.0 max: 1.0;
     float t;  
 
 	float h <- 0.01;
